@@ -2,29 +2,26 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 )
 
-func respondWithError(w http.ResponseWriter, code int, msg string) {
-	type response struct {
-		Error string `json:"error"`
-	}
-	respBody := response{
-		Error: msg,
-	}
-	res, err := json.Marshal(respBody)
-	if err != nil {
-		log.Printf("Error marshalling JSON: %s", err)
-		w.WriteHeader(500)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	w.Write(res)
-
+func respondWithError(w http.ResponseWriter, code int, msg string) error {
+	return respondWithJSON(w, code, map[string]string{"error": msg})
 }
 
-// func respondWithError(w http.ResponseWriter, code int) {
+func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) error {
+	w.Header().Set("Content-Type", "application/json")
+	dat, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	w.WriteHeader(code)
+	w.Write(dat)
+	return nil
+}
 
-// }
+func respondWithPlaintext(w http.ResponseWriter, code int, payload []byte) {
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(code)
+	w.Write(payload)
+}

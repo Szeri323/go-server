@@ -9,6 +9,14 @@ func (cfg *apiConfig) clearUsersTable(r *http.Request) {
 	cfg.database.TruncateUsersTable(r.Context())
 }
 
+func (cfg *apiConfig) clearChirpsTable(r *http.Request) {
+	cfg.database.TruncateChirpsTable(r.Context())
+}
+
+func (cfg *apiConfig) clearRefreshTokenTable(r *http.Request) {
+	cfg.database.TruncateRefreshTokensTable(r.Context())
+}
+
 func (cfg *apiConfig) resetHits() {
 	cfg.fileserverHits.Store(0)
 }
@@ -19,9 +27,11 @@ func (cfg *apiConfig) handlerReset(w http.ResponseWriter, r *http.Request) {
 	platform := os.Getenv("PLATFORM")
 	if platform == "dev" {
 		cfg.clearUsersTable(r)
-		w.WriteHeader(http.StatusOK)
+		cfg.clearChirpsTable(r)
+		cfg.clearRefreshTokenTable(r)
+		respondWithPlaintext(w, http.StatusOK, cfg.printHits())
 	} else {
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte("Forbidden"))
+		respondWithPlaintext(w, http.StatusForbidden, []byte("Forbidden"))
 	}
+
 }
